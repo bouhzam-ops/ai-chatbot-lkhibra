@@ -1,0 +1,74 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# --- 1. Définition des paramètres du système ---
+g = 9.81  # Accélération de la pesanteur (m/s^2)
+l = 1.0   # Longueur du fil (m)
+omega_0 = np.sqrt(g / l)  # Pulsation propre
+
+# --- 2. Définition du système d'équations différentielles ---
+def pendule_system(t, y):
+    """
+    y[0] = theta (position angulaire)
+    y[1] = u = dtheta/dt (vitesse angulaire)
+    """
+    theta, u = y
+    dtheta_dt = u
+    du_dt = - (omega_0**2) * theta  # Équation linéarisée 
+    return [dtheta_dt, du_dt]
+
+# --- 3. Paramètres temporels ---
+t_start = 0
+t_end = 10
+num_points = 500
+t_span = (t_start, t_end)
+# Utilisation de np.arange comme suggéré dans l'énoncé
+t_eval = np.arange(t_start, t_end, (t_end - t_start) / num_points)
+
+# --- 4. Valeurs initiales de theta_0 (4 valeurs différentes) ---
+# On choisit des angles en radians (ex: 0.05, 0.1, 0.2, 0.3 rad)
+theta_0_list = [0.05, 0.10, 0.20, 0.30] 
+u_0 = 0.0  # Vitesse initiale nulle (abandonné sans vitesse initiale)
+
+# --- 5. Résolution et Graphiques ---
+fig, axs = plt.subplots(1, 3, figsize=(18, 5))
+
+for theta_0 in theta_0_list:
+    y_init = [theta_0, u_0]
+    
+    # Résolution numérique avec solve_ivp
+    solution = solve_ivp(pendule_system, t_span, y_init, t_eval=t_eval)
+    
+    t = solution.t
+    theta = solution.y[0]
+    u = solution.y[1]
+    
+    # Courbe theta(t)
+    axs[0].plot(t, theta, label=r'$\theta_0$ = ' + f'{theta_0} rad')
+    # Courbe u(t)
+    axs[1].plot(t, u, label=r'$\theta_0$ = ' + f'{theta_0} rad')
+    # Portrait de phase u en fonction de theta
+    axs[2].plot(theta, u, label=r'$\theta_0$ = ' + f'{theta_0} rad')
+
+# Configuration des axes et légendes
+axs[0].set_title(r'Position angulaire $\theta(t)$')
+axs[0].set_xlabel('Temps $t$ (s)')
+axs[0].set_ylabel(r'$\theta$ (rad)')
+axs[0].grid(True)
+axs[0].legend()
+
+axs[1].set_title(r'Vitesse angulaire $u(t)$')
+axs[1].set_xlabel('Temps $t$ (s)')
+axs[1].set_ylabel('$u$ (rad/s)')
+axs[1].grid(True)
+axs[1].legend()
+
+axs[2].set_title('Portrait de phase')
+axs[2].set_xlabel(r'$\theta$ (rad)')
+axs[2].set_ylabel('$u$ (rad/s)')
+axs[2].grid(True)
+axs[2].legend()
+
+plt.tight_layout()
+plt.show()
