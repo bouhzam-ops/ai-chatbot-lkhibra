@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# --- Paramètres du signal périodique E(t) ---
+E0 = 5  # Amplitude en Volts (+E0 puis -E0)
+T = 10  # Période du signal en secondes
+
+def E(t):
+    """Définit le signal rectangulaire périodique alternant entre E0 et -E0."""
+    return E0 if (t % T) < (T / 2) else -E0
+
+# --- Équation différentielle ---
+def equation_rc(t, v, tau):
+    """Dérive dv/dt = (E(t) - v) / tau"""
+    return (E(t) - v) / tau
+# Définition du vecteur temps (0 à 2 périodes)
+t_points = np.linspace(0, 2 * T, 1000)
+v0 = [0]  # Condition initiale : condensateur déchargé à t = 0
+
+# Liste des 4 valeurs de tau à tester
+tau_values = [0.5, 1.5, 3.0, 7.0]
+
+plt.figure(figsize=(10, 6))
+
+# Tracé du signal d'entrée E(t) pour référence
+E_visu = [E(t) for t in t_points]
+plt.plot(t_points, E_visu, 'k--', label="Signal d'entrée E(t)", alpha=0.6)
+
+# Simulation pour chaque valeur de tau
+for tau in tau_values:
+    sol = solve_ivp(equation_rc, [0, 2 * T], v0, t_eval=t_points, args=(tau,))
+    plt.plot(sol.t, sol.y[0], label=f'$\\tau$ = {tau} s')
+
+plt.title("Charge et décharge du condensateur pour différentes valeurs de $\\tau$")
+plt.xlabel("Temps $t$ (s)")
+plt.ylabel("Tension $v(t)$ (V)")
+plt.grid(True)
+plt.legend()
+plt.show()
